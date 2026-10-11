@@ -1,48 +1,40 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html,body{margin:0;background:#070711;overflow:hidden;height:100%}canvas{width:100%;height:100%}</style>
-</head>
-<body>
-<canvas id="c"></canvas>
-<script>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;background:#080815;height:100%;overflow:hidden}canvas{width:100%;height:100%}</style></head>
+<body><canvas id="c"></canvas><script>
 const c=document.getElementById('c'), x=c.getContext('2d');
-let W,H; const R=()=>{W=c.width=innerWidth; H=c.height=innerHeight}; R(); onresize=R;
+let W,H;function R(){W=c.width=innerWidth; H=c.height=innerHeight}R();onresize=R;
 let Fs=[];
 class F{
- constructor(px,py){this.x=px; this.y=py; this.h=0; this.mh=100+Math.random()*130; this.g=0; this.b=0; this.s=0.9+Math.random()*0.4}
- up(){ if(this.g<1){this.g+=0.02; this.h=this.mh*this.g} else if(this.b<1) this.b+=0.03 }
- drawPetal(){
+ constructor(px,py){this.x=px; this.y=py; this.h=0; this.mh=120+Math.random()*100; this.g=0; this.b=0; this.s=1+Math.random()*0.3}
+ up(){if(this.g<1){this.g+=0.018; this.h=this.mh*this.g} else if(this.b<1) this.b+=0.03}
+ petal(){
   x.beginPath();
   x.moveTo(0,0);
-  // forma de pétalo gota
-  x.bezierCurveTo(12*this.s, -2*this.s, 14*this.s, 12*this.s, 0, 22*this.s);
-  x.bezierCurveTo(-14*this.s, 12*this.s, -12*this.s, -2*this.s, 0,0);
+  // PETALO GRUESO con punta - 18 es el grosor
+  x.bezierCurveTo(18*this.s, 4*this.s, 20*this.s, 18*this.s, 0, 28*this.s);
+  x.bezierCurveTo(-20*this.s, 18*this.s, -18*this.s, 4*this.s, 0,0);
   x.fill();
+  x.strokeStyle='rgba(255,255,255,0.5)'; x.lineWidth=0.8; x.stroke();
  }
  draw(){
   x.save(); x.translate(this.x,this.y);
-  x.strokeStyle='#ff5a8a'; x.lineWidth=2; x.shadowBlur=10; x.shadowColor='#ff2d6b';
-  x.beginPath(); x.moveTo(0,0); x.lineTo(0,-this.h); x.stroke(); x.shadowBlur=0;
+  x.strokeStyle='#ff4d7a'; x.lineWidth=2; x.beginPath(); x.moveTo(0,0); x.lineTo(0,-this.h); x.stroke();
   if(this.b>0){
    x.translate(0,-this.h); x.globalAlpha=this.b;
    for(let i=0;i<5;i++){
-    x.rotate(Math.PI*2/5);
-    x.fillStyle=`hsl(${345+Math.random()*10},100%,72%)`;
-    x.shadowBlur=15; x.shadowColor='#ff4d7a';
-    this.drawPetal();
+    x.save(); x.rotate(i*Math.PI*2/5);
+    x.fillStyle='#ff7a9e';
+    this.petal();
+    x.restore();
    }
-   x.shadowBlur=0; x.fillStyle='#ffe8ef'; x.beginPath(); x.arc(0,0,4*this.s,0,Math.PI*2); x.fill();
-   x.fillStyle='#ff2d6b'; x.beginPath(); x.arc(0,0,1.5*this.s,0,Math.PI*2); x.fill();
+   x.fillStyle='white'; x.beginPath(); x.arc(0,0,4,0,Math.PI*2); x.fill();
   }
   x.restore();
  }
 }
 function add(X,Y){Fs.push(new F(X,Y))}
 c.addEventListener('pointerdown',e=>add(e.clientX,e.clientY));
-for(let i=0;i<5;i++) setTimeout(()=>add(W*0.15+Math.random()*W*0.7,H*0.85),i*150);
-(function L(){x.fillStyle='rgba(7,7,17,0.3)'; x.fillRect(0,0,W,H); Fs.forEach(f=>{f.up(); f.draw()}); requestAnimationFrame(L)})();
-</script>
-</body>
-</html>
+for(let i=0;i<5;i++) setTimeout(()=>add(W*0.2+Math.random()*W*0.6,H*0.8),i*180);
+(function L(){x.fillStyle='rgba(8,8,21,0.25)'; x.fillRect(0,0,W,H); Fs.forEach(f=>{f.up(); f.draw()}); requestAnimationFrame(L)})();
+</script></body></html>
