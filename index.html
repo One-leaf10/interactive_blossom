@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { margin:0; background:#0a0a12; overflow:hidden; touch-action:none; }
+  canvas { display:block; width:100vw; height:100vh; }
+  h1 { position:fixed; top:20px; width:100%; text-align:center; 
+       color:#fff; font-family: sans-serif; font-size:22px; z-index:10; pointer-events:none; }
+  h1 span { color:#ff4d6d; }
+</style>
+</head>
+<body>
+<h1>Interactive <span>Blossom</span></h1>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let w, h;
+function resize(){ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+let flowers = [];
+let particles = [];
+
+class Flower {
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.height=0; this.targetH = 80 + Math.random()*120;
+    this.growth = 0;
+    this.bloom = 0;
+    this.petals = 5 + Math.floor(Math.random()*3);
+  }
+  update(){
+    if(this.growth < 1) this.growth += 0.02;
+    this.height = this.targetH * this.growth;
+    if(this.growth >= 1 && this.bloom < 1) this.bloom += 0.03;
+  }
+  draw(){
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    // tallo brillante
+    ctx.strokeStyle = `rgba(255,100,130,${0.6*this.growth})`;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "#ff4d6d";
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0, -this.height);
+    ctx.stroke();
+    
+    // flor
+    if(this.bloom>0){
+      ctx.translate(0, -this.height);
+      for(let i=0;i<this.petals;i++){
+        ctx.rotate((Math.PI*2)/this.petals);
+        ctx.fillStyle = `rgba(255,80,120,${this.bloom})`;
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.ellipse(0,0, 12*this.bloom, 6*this.bloom, 0,0,Math.PI*2);
+        ctx.fill();
+      }
+      // centro
+      ctx.fillStyle = `rgba(255,200,220,${this.bloom})`;
+      ctx.beginPath();
+      ctx.arc(0,0,4*this.bloom,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function addFlower(x,y){
+  flowers.push(new Flower(x,y));
+  for(let i=0;i<10;i++) particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-1)*4,life:1});
+}
+
+canvas.addEventListener('click', e=> addFlower(e.clientX, e.clientY));
+canvas.addEventListener('touchstart', e=> {
+  e.preventDefault();
+  addFlower(e.touches[0].clientX, e.touches[0].clientY);
+});
+
+// flores iniciales del video
+setTimeout(()=>{ for(let i=0;i<3;i++) addFlower(w*0.3 + Math.random()*w*0.4, h*0.8); }, 500);
+
+function loop(){
+  ctx.fillStyle = "rgba(10,10,18,0.2)";
+  ctx.fillRect(0,0,w,h);
+  
+  particles.forEach((p,i)=>{
+    p.x+=p.vx; p.y+=p.vy; p.life-=0.02;
+    ctx.fillStyle=`rgba(255,100,150,${p.life})`;
+    ctx.fillRect(p.x,p.y,2,2);
+    if(p.life<=0) particles.splice(i,1);
+  });
+  
+  flowers.forEach(f=>{ f.update(); f.draw(); });
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
