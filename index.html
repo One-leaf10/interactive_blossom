@@ -1,105 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <style>
-  body { margin:0; background:#0a0a12; overflow:hidden; touch-action:none; }
-  canvas { display:block; width:100vw; height:100vh; }
-  h1 { position:fixed; top:20px; width:100%; text-align:center; 
-       color:#fff; font-family: sans-serif; font-size:22px; z-index:10; pointer-events:none; }
-  h1 span { color:#ff4d6d; }
+html,body{margin:0;background:#060610;overflow:hidden;height:100%}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#t{position:absolute;top:25px;width:100%;text-align:center;color:white;font-family:Arial;font-weight:300;letter-spacing:2px;font-size:22px;pointer-events:none}
+#t b{color:#ff3b6e;font-weight:700}
 </style>
 </head>
 <body>
-<h1>Interactive <span>Blossom</span></h1>
+<div id="t">Interactive <b>Blossom</b></div>
 <canvas id="c"></canvas>
 <script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-let w, h;
-function resize(){ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; }
-resize(); window.addEventListener('resize', resize);
-
-let flowers = [];
-let particles = [];
-
-class Flower {
-  constructor(x,y){
-    this.x=x; this.y=y;
-    this.height=0; this.targetH = 80 + Math.random()*120;
-    this.growth = 0;
-    this.bloom = 0;
-    this.petals = 5 + Math.floor(Math.random()*3);
-  }
-  update(){
-    if(this.growth < 1) this.growth += 0.02;
-    this.height = this.targetH * this.growth;
-    if(this.growth >= 1 && this.bloom < 1) this.bloom += 0.03;
-  }
-  draw(){
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    // tallo brillante
-    ctx.strokeStyle = `rgba(255,100,130,${0.6*this.growth})`;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#ff4d6d";
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(0, -this.height);
-    ctx.stroke();
-    
-    // flor
-    if(this.bloom>0){
-      ctx.translate(0, -this.height);
-      for(let i=0;i<this.petals;i++){
-        ctx.rotate((Math.PI*2)/this.petals);
-        x.fillStyle=this.c; 
-    x.shadowBlur=15; 
-    x.shadowColor=this.c;
-    x.beginPath(); 
-    x.ellipse(0,9*this.s, 14*this.s, 16*this.s, 0,0,Math.PI*2); 
+const c=document.getElementById('c'), x=c.getContext('2d');
+let W,H; function R(){W=c.width=innerWidth; H=c.height=innerHeight} R(); addEventListener('resize',R);
+let Fs=[];
+class F{
+ constructor(px,py){
+  this.x=px; this.y=py; this.h=0; this.mh=90+Math.random()*140; this.g=0; this.b=0;
+  this.s=0.8+Math.random()*0.5; this.c=`hsl(${340+Math.random()*20},100%,70%)`;
+ }
+ up(){ if(this.g<1){this.g+=0.015; this.h=this.mh*this.g*(2-this.g);} else if(this.b<1) this.b+=0.025; }
+ draw(){
+  x.save(); x.translate(this.x,this.y);
+  x.strokeStyle='#ff4d7a'; x.lineWidth=2.5*this.s; x.shadowBlur=12; x.shadowColor='#ff2a6a';
+  x.beginPath(); x.moveTo(0,0); x.bezierCurveTo(10,-this.h*0.3, -10,-this.h*0.6, 0,-this.h); x.stroke();
+  x.shadowBlur=0;
+  if(this.b>0){
+   x.translate(0,-this.h); x.globalAlpha=this.b;
+   for(let i=0;i<5;i++){
+    x.rotate(Math.PI*2/5);
+    x.fillStyle=this.c; x.shadowBlur=18; x.shadowColor=this.c;
+    x.beginPath();
+    // AQUI ESTA LO GRUESO: 19 de ancho x 15 de alto
+    x.ellipse(0,8*this.s, 22*this.s, 15*this.s, 0,0,Math.PI*2);
     x.fill();
-      }
-      // centro
-      ctx.fillStyle = `rgba(255,200,220,${this.bloom})`;
-      ctx.beginPath();
-      ctx.arc(0,0,4*this.bloom,0,Math.PI*2);
-      ctx.fill();
-    }
-    ctx.restore();
+   }
+   x.shadowBlur=0; x.fillStyle='#fff'; x.beginPath(); x.arc(0,0,5.5*this.s,0,Math.PI*2); x.fill();
   }
+  x.restore();
+ }
 }
-
-function addFlower(x,y){
-  flowers.push(new Flower(x,y));
-  for(let i=0;i<10;i++) particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-1)*4,life:1});
-}
-
-canvas.addEventListener('click', e=> addFlower(e.clientX, e.clientY));
-canvas.addEventListener('touchstart', e=> {
-  e.preventDefault();
-  addFlower(e.touches[0].clientX, e.touches[0].clientY);
-});
-
-// flores iniciales del video
-setTimeout(()=>{ for(let i=0;i<3;i++) addFlower(w*0.3 + Math.random()*w*0.4, h*0.8); }, 500);
-
-function loop(){
-  ctx.fillStyle = "rgba(10,10,18,0.2)";
-  ctx.fillRect(0,0,w,h);
-  
-  particles.forEach((p,i)=>{
-    p.x+=p.vx; p.y+=p.vy; p.life-=0.02;
-    ctx.fillStyle=`rgba(255,100,150,${p.life})`;
-    ctx.fillRect(p.x,p.y,2,2);
-    if(p.life<=0) particles.splice(i,1);
-  });
-  
-  flowers.forEach(f=>{ f.update(); f.draw(); });
-  requestAnimationFrame(loop);
-}
-loop();
+function add(X,Y){Fs.push(new F(X,Y))}
+c.addEventListener('pointerdown',e=>add(e.clientX,e.clientY));
+for(let i=0;i<4;i++) setTimeout(()=>add(W*0.2+Math.random()*W*0.6, H*0.8), i*200);
+(function L(){ x.fillStyle='rgba(6,6,16,0.28)'; x.fillRect(0,0,W,H); Fs.forEach(f=>{f.up(); f.draw()}); requestAnimationFrame(L); })();
 </script>
 </body>
 </html>
